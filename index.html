@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradeAssistAI - Student Submission Grading Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>GradeAssistAI</h1>
+            <p>Generate comprehensive student feedback in seconds</p>
+            <button id="darkModeToggle" class="toggle-btn">
+                <i class="fas fa-moon"></i>
+            </button>
+        </header>
+
+        <main>
+            <div class="form-container">
+                <div class="form-group">
+                    <label for="assignmentType">Assignment Type</label>
+                    <input type="text" id="assignmentType" placeholder="Essay, Project, Quiz, Lab Report, etc.">
+                </div>
+                
+                <div class="form-group">
+                    <label for="gradeLevel">Grade Level</label>
+                    <input type="text" id="gradeLevel" placeholder="K-12, Undergraduate, Graduate, etc.">
+                </div>
+                
+                <div class="form-group">
+                    <label for="discipline">Academic Discipline</label>
+                    <input type="text" id="discipline" placeholder="Mathematics, English, Biology, History, etc.">
+                </div>
+                
+                <div class="form-group">
+                    <label for="knowledgeLevel">Expected Knowledge Level</label>
+                    <select id="knowledgeLevel">
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                        <option value="expert">Expert</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="strictnessRating">Strictness Rating (1-5)</label>
+                    <input type="number" id="strictnessRating" min="1" max="5" value="3" placeholder="1 = Lenient, 5 = Strict">
+                </div>
+                
+                <div class="form-group">
+                    <label for="questionText">Assignment Question(s)</label>
+                    <textarea id="questionText" placeholder="Enter the question(s) that students were asked to answer."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="expectedAnswer">Expected Answer(s)</label>
+                    <textarea id="expectedAnswer" placeholder="Enter what you would consider to be a model answer or key points that should be included."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="rubricElements">Rubric Elements</label>
+                    <textarea id="rubricElements" placeholder="List the rubric elements or criteria used to evaluate this assignment (e.g., Content Accuracy, Organization, Grammar, Critical Thinking)."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="studentSubmission">Student Submission</label>
+                    <textarea id="studentSubmission" placeholder="Paste the student's submission text here."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="apiKey">Gemini API Key</label>
+                    <div class="api-key-container">
+                        <input type="password" id="apiKey" placeholder="Enter your Gemini API Key">
+                        <button id="toggleApiKey" class="toggle-visibility">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <small>Your API key is stored locally and never sent to any server except Google's API.</small>
+                </div>
+                
+                <button id="generateBtn" class="primary-btn">Generate Feedback</button>
+            </div>
+            
+            <div class="output-container" id="outputContainer">
+                <div class="output-header">
+                    <h2>Generated Feedback</h2>
+                    <button id="copyBtn" class="secondary-btn" disabled>
+                        <i class="fas fa-copy"></i> Copy to Clipboard
+                    </button>
+                </div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Generating feedback...</p>
+                </div>
+                
+                <div id="output" class="output"></div>
+            </div>
+        </main>
+        
+        <footer>
+            <p>GradeAssistAI &copy; 2025 | <a href="#" id="aboutLink">About</a></p>
+        </footer>
+    </div>
+    
+    <div id="copyModal" class="modal">
+        <div class="modal-content">
+            <h3>Feedback Copied!</h3>
+            <p>Paste this directly into your LMS or email to students!</p>
+            <button id="closeModal" class="primary-btn">Got it!</button>
+        </div>
+    </div>
+    
+    <div id="aboutModal" class="modal">
+        <div class="modal-content">
+            <h3>About GradeAssistAI</h3>
+            <p>GradeAssistAI is a lightweight tool that helps educators grade student submissions and provide comprehensive feedback quickly using AI.</p>
+            <p>This application runs entirely in your browser - no data is stored on any server.</p>
+            <p>To use GradeAssistAI, you'll need a <a href="https://ai.google.dev/" target="_blank">Gemini API key</a>.</p>
+            <button id="closeAboutModal" class="primary-btn">Close</button>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
