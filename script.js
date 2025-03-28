@@ -136,12 +136,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return levelDescriptions[level] || level;
     }
     
-     async function callGeminiAPI({ courseName, courseCode, courseDescription, discipline, teachingStyle, weeksDuration, referenceContent, apiKey }) {
-        const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent';
+    async function callGeminiAPI({ assignmentType, gradeLevel, discipline, knowledgeLevel, strictnessRating, questionText, expectedAnswer, rubricElements, studentSubmission, apiKey }) {
+        const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-exp-03-25:generateContent';
         
-        const teachingStyleDescription = getTeachingStyleDescription(teachingStyle);
+        const knowledgeLevelDescription = getKnowledgeLevelDescription(knowledgeLevel);
         
-        const prompt =  = `
+        const prompt = `
         Generate a comprehensive, professional assessment of a student submission with detailed feedback, adhering to the following specifications:
 
 ASSIGNMENT DETAILS:
