@@ -4,8 +4,449 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GradeAssistAI - Student Submission Grading Assistant</title>
-    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+    <style>
+        /* Base styling */
+        :root {
+            --primary-color: #3a3a3a;
+            --accent-color: #4a6fa5;
+            --bg-color: #ffffff;
+            --text-color: #1a1a1a;
+            --border-color: #e0e0e0;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --error-color: #d32f2f;
+            --success-color: #388e3c;
+            --font-family: 'Georgia', 'Times New Roman', serif;
+        }
+
+        .dark-mode {
+            --primary-color: #757575;
+            --accent-color: #6f9ad1;
+            --bg-color: #000000;
+            --text-color: #ffffff;
+            --border-color: #333333;
+            --shadow-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header styling */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: normal;
+            margin-right: auto;
+        }
+
+        header p {
+            font-style: italic;
+            margin-right: 20px;
+        }
+
+        /* Main content styling */
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media (min-width: 768px) {
+            main {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Form styling */
+        .form-container {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px var(--shadow-color);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            transition: border-color 0.2s;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23131313%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 12px;
+            padding-right: 30px;
+        }
+
+        .dark-mode select {
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        small {
+            display: block;
+            color: var(--primary-color);
+            margin-top: 5px;
+            font-size: 0.8rem;
+        }
+
+        /* Content Selection Styling */
+        .content-selection {
+            margin-bottom: 20px;
+        }
+
+        .content-selection h3 {
+            margin-bottom: 15px;
+            color: var(--accent-color);
+            font-size: 1.1rem;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .checkbox-item label {
+            margin: 0;
+            font-weight: normal;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .checkbox-item .word-limit {
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            font-style: italic;
+        }
+
+        /* API Key Styling */
+        .api-key-container {
+            display: flex;
+            position: relative;
+        }
+
+        .toggle-visibility {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        /* Button styling */
+        button {
+            cursor: pointer;
+            font-family: var(--font-family);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .primary-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-top: 20px;
+        }
+
+        .primary-btn:hover {
+            background-color: var(--accent-color);
+            opacity: 0.9;
+        }
+
+        .primary-btn:active {
+            transform: scale(0.98);
+        }
+
+        .secondary-btn {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .secondary-btn:hover {
+            background-color: var(--border-color);
+        }
+
+        .secondary-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* Output styling */
+        .output-container {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px var(--shadow-color);
+            background-color: var(--bg-color);
+            min-height: 300px;
+            position: relative;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .output {
+            line-height: 1.6;
+            font-family: var(--font-family);
+        }
+
+        /* Markdown styling for output */
+        .output h1, .output h2, .output h3, .output h4, .output h5, .output h6 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+        }
+
+        .output h1 {
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .output h2 {
+            font-size: 1.5rem;
+        }
+
+        .output h3 {
+            font-size: 1.3rem;
+        }
+
+        .output p {
+            margin-bottom: 15px;
+        }
+
+        .output ul, .output ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .output li {
+            margin-bottom: 5px;
+        }
+
+        .output strong {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .output em {
+            font-style: italic;
+        }
+
+        .output blockquote {
+            border-left: 4px solid var(--accent-color);
+            padding-left: 15px;
+            margin: 15px 0;
+            font-style: italic;
+            color: var(--primary-color);
+        }
+
+        .output code {
+            background-color: var(--border-color);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .output pre {
+            background-color: var(--border-color);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+        }
+
+        .output pre code {
+            background: none;
+            padding: 0;
+        }
+
+        /* Loading spinner */
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1.5s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Footer styling */
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: var(--primary-color);
+        }
+
+        footer a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: var(--bg-color);
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h3 {
+            margin-bottom: 15px;
+        }
+
+        .modal-content p {
+            margin-bottom: 20px;
+        }
+
+        /* Typography and other elements */
+        h1, h2, h3 {
+            font-weight: normal;
+            line-height: 1.3;
+            color: var(--text-color);
+        }
+
+        a {
+            color: var(--accent-color);
+        }
+
+        /* Error display */
+        .error {
+            color: var(--error-color);
+            padding: 10px;
+            border: 1px solid var(--error-color);
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -47,6 +488,37 @@
                 <div class="form-group">
                     <label for="strictnessRating">Strictness Rating (1-5)</label>
                     <input type="number" id="strictnessRating" min="1" max="5" value="3" placeholder="1 = Lenient, 5 = Strict">
+                </div>
+
+                <div class="content-selection">
+                    <h3>Select Content Sections to Include</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="suggestedGrade" checked>
+                            <label for="suggestedGrade">Suggested Grade</label>
+                            <span class="word-limit">(&lt; 20 words)</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="summaryAssessment" checked>
+                            <label for="summaryAssessment">Summary of Assessment</label>
+                            <span class="word-limit">(&lt; 150 words)</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="rubricPerformance" checked>
+                            <label for="rubricPerformance">Performance Against Defined Rubrics</label>
+                            <span class="word-limit">(&lt; 200 words)</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="areasStrength" checked>
+                            <label for="areasStrength">Areas of Strength</label>
+                            <span class="word-limit">(&lt; 200 words)</span>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="areasImprovement" checked>
+                            <label for="areasImprovement">Areas of Improvement</label>
+                            <span class="word-limit">(&lt; 200 words)</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -123,6 +595,361 @@
         </div>
     </div>
     
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const generateBtn = document.getElementById('generateBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const toggleApiKeyBtn = document.getElementById('toggleApiKey');
+            const apiKeyInput = document.getElementById('apiKey');
+            const outputContainer = document.getElementById('outputContainer');
+            const outputElement = document.getElementById('output');
+            const loadingElement = document.getElementById('loading');
+            const copyModal = document.getElementById('copyModal');
+            const closeModalBtn = document.getElementById('closeModal');
+            const aboutLink = document.getElementById('aboutLink');
+            const aboutModal = document.getElementById('aboutModal');
+            const closeAboutModalBtn = document.getElementById('closeAboutModal');
+            const strictnessRatingInput = document.getElementById('strictnessRating');
+            
+            // Content section checkboxes
+            const suggestedGradeCheck = document.getElementById('suggestedGrade');
+            const summaryAssessmentCheck = document.getElementById('summaryAssessment');
+            const rubricPerformanceCheck = document.getElementById('rubricPerformance');
+            const areasStrengthCheck = document.getElementById('areasStrength');
+            const areasImprovementCheck = document.getElementById('areasImprovement');
+            
+            // Check for dark mode preference
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                document.body.classList.add('dark-mode');
+                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+            
+            // Load saved API key if available
+            if (localStorage.getItem('geminiApiKey')) {
+                apiKeyInput.value = localStorage.getItem('geminiApiKey');
+            }
+            
+            // Event Listeners
+            darkModeToggle.addEventListener('click', toggleDarkMode);
+            generateBtn.addEventListener('click', generateFeedback);
+            copyBtn.addEventListener('click', copyFeedbackToClipboard);
+            toggleApiKeyBtn.addEventListener('click', toggleApiKeyVisibility);
+            closeModalBtn.addEventListener('click', () => copyModal.style.display = 'none');
+            aboutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                aboutModal.style.display = 'flex';
+            });
+            closeAboutModalBtn.addEventListener('click', () => aboutModal.style.display = 'none');
+            
+            // API Key input change - save to localStorage
+            apiKeyInput.addEventListener('change', () => {
+                localStorage.setItem('geminiApiKey', apiKeyInput.value);
+            });
+            
+            // Functions
+            function toggleDarkMode() {
+                document.body.classList.toggle('dark-mode');
+                
+                if (document.body.classList.contains('dark-mode')) {
+                    localStorage.setItem('darkMode', 'enabled');
+                    darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                } else {
+                    localStorage.setItem('darkMode', 'disabled');
+                    darkModeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                }
+            }
+            
+            function toggleApiKeyVisibility() {
+                if (apiKeyInput.type === 'password') {
+                    apiKeyInput.type = 'text';
+                    toggleApiKeyBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                } else {
+                    apiKeyInput.type = 'password';
+                    toggleApiKeyBtn.innerHTML = '<i class="fas fa-eye"></i>';
+                }
+            }
+            
+            function getSelectedContentSections() {
+                const sections = [];
+                
+                if (suggestedGradeCheck.checked) {
+                    sections.push({
+                        id: 'suggestedGrade',
+                        name: 'Suggested Grade',
+                        wordLimit: 20
+                    });
+                }
+                
+                if (summaryAssessmentCheck.checked) {
+                    sections.push({
+                        id: 'summaryAssessment',
+                        name: 'Summary of Assessment',
+                        wordLimit: 150
+                    });
+                }
+                
+                if (rubricPerformanceCheck.checked) {
+                    sections.push({
+                        id: 'rubricPerformance',
+                        name: 'Performance Against Defined Rubrics',
+                        wordLimit: 200
+                    });
+                }
+                
+                if (areasStrengthCheck.checked) {
+                    sections.push({
+                        id: 'areasStrength',
+                        name: 'Areas of Strength',
+                        wordLimit: 200
+                    });
+                }
+                
+                if (areasImprovementCheck.checked) {
+                    sections.push({
+                        id: 'areasImprovement',
+                        name: 'Areas of Improvement',
+                        wordLimit: 200
+                    });
+                }
+                
+                return sections;
+            }
+            
+            async function generateFeedback() {
+                // Get input values
+                const assignmentType = document.getElementById('assignmentType').value.trim();
+                const gradeLevel = document.getElementById('gradeLevel').value.trim();
+                const discipline = document.getElementById('discipline').value.trim();
+                const knowledgeLevel = document.getElementById('knowledgeLevel').value;
+                const strictnessRating = strictnessRatingInput.value.trim();
+                const questionText = document.getElementById('questionText').value.trim();
+                const expectedAnswer = document.getElementById('expectedAnswer').value.trim();
+                const rubricElements = document.getElementById('rubricElements').value.trim();
+                const studentSubmission = document.getElementById('studentSubmission').value.trim();
+                const apiKey = apiKeyInput.value.trim();
+                const selectedSections = getSelectedContentSections();
+                
+                // Validate inputs
+                if (!assignmentType || !gradeLevel || !discipline || !questionText || !studentSubmission) {
+                    alert('Please fill in the required fields: Assignment Type, Grade Level, Discipline, Question(s), and Student Submission.');
+                    return;
+                }
+                
+                if (!strictnessRating || strictnessRating < 1 || strictnessRating > 5) {
+                    alert('Please enter a valid strictness rating between 1 and 5.');
+                    return;
+                }
+                
+                if (!apiKey) {
+                    alert('Please enter your Gemini API Key.');
+                    return;
+                }
+                
+                if (selectedSections.length === 0) {
+                    alert('Please select at least one content section to include in the assessment.');
+                    return;
+                }
+                
+                // Show loading
+                loadingElement.style.display = 'block';
+                outputElement.innerHTML = '';
+                copyBtn.disabled = true;
+                
+                try {
+                    const response = await callGeminiAPI({
+                        assignmentType,
+                        gradeLevel,
+                        discipline,
+                        knowledgeLevel,
+                        strictnessRating,
+                        questionText,
+                        expectedAnswer,
+                        rubricElements,
+                        studentSubmission,
+                        apiKey,
+                        selectedSections
+                    });
+                    
+                    // Display result with markdown rendering
+                    outputElement.innerHTML = marked.parse(response);
+                    copyBtn.disabled = false;
+                } catch (error) {
+                    outputElement.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                } finally {
+                    loadingElement.style.display = 'none';
+                }
+            }
+            
+            // Map knowledge level values to descriptive text
+            function getKnowledgeLevelDescription(level) {
+                const levelDescriptions = {
+                    'beginner': 'Students are just being introduced to the subject matter and should demonstrate basic understanding of fundamental concepts.',
+                    'intermediate': 'Students have some background in the subject and should demonstrate application of concepts and deeper understanding.',
+                    'advanced': 'Students have significant experience with the subject and should demonstrate synthesis of ideas and critical analysis.',
+                    'expert': 'Students have extensive knowledge of the field and should demonstrate mastery, original insights, and field-specific expertise.'
+                };
+                
+                return levelDescriptions[level] || level;
+            }
+            
+            function buildModularPrompt(data) {
+                const { assignmentType, gradeLevel, discipline, knowledgeLevel, strictnessRating, questionText, expectedAnswer, rubricElements, studentSubmission, selectedSections } = data;
+                
+                const knowledgeLevelDescription = getKnowledgeLevelDescription(knowledgeLevel);
+                
+                let prompt = `Generate a student assessment report based on the following specifications. ONLY include the requested sections listed below:
+
+ASSIGNMENT DETAILS:
+- Assignment Type: ${assignmentType}
+- Grade Level: ${gradeLevel}
+- Academic Discipline: ${discipline}
+- Knowledge Level: ${knowledgeLevelDescription}
+- Strictness Rating: ${strictnessRating}/5 (where 1 is most lenient and 5 is most strict)
+
+ASSIGNMENT QUESTION:
+${questionText}
+
+${expectedAnswer ? `EXPECTED ANSWER OR KEY POINTS:
+${expectedAnswer}` : ''}
+
+${rubricElements ? `RUBRIC ELEMENTS:
+${rubricElements}` : 'STANDARD RUBRIC ELEMENTS:\n- Content Accuracy\n- Critical Thinking\n- Organization\n- Clarity of Expression\n- Grammar and Mechanics'}
+
+STUDENT SUBMISSION:
+${studentSubmission}
+
+REQUESTED SECTIONS TO INCLUDE (generate ONLY these sections):
+`;
+
+                selectedSections.forEach(section => {
+                    switch (section.id) {
+                        case 'suggestedGrade':
+                            prompt += `
+## ${section.name}
+Provide a suggested grade or score appropriate for the grade level and discipline. Keep this under ${section.wordLimit} words. Be concise and direct.
+`;
+                            break;
+                        case 'summaryAssessment':
+                            prompt += `
+## ${section.name}
+Write a comprehensive summary of the overall assessment in under ${section.wordLimit} words. Include overall quality, effectiveness, and key observations about the student's work.
+`;
+                            break;
+                        case 'rubricPerformance':
+                            prompt += `
+## ${section.name}
+Evaluate the student's performance against each rubric element in under ${section.wordLimit} words total. Provide specific examples and scores where appropriate. Apply the strictness rating (${strictnessRating}/5) to determine how closely the submission must match expectations.
+`;
+                            break;
+                        case 'areasStrength':
+                            prompt += `
+## ${section.name}
+Identify and describe 2-3 specific strengths demonstrated in the submission in under ${section.wordLimit} words. Use specific examples from the student work and connect these strengths to academic skills.
+`;
+                            break;
+                        case 'areasImprovement':
+                            prompt += `
+## ${section.name}
+Provide 3-5 specific, actionable recommendations for improvement in under ${section.wordLimit} words. Focus on the most impactful changes and frame suggestions constructively. Include examples where helpful.
+`;
+                            break;
+                    }
+                });
+
+                prompt += `
+FORMATTING REQUIREMENTS:
+- Use markdown formatting for headers (##) and emphasis (**bold**)
+- Write in a professional, supportive tone appropriate for ${gradeLevel} level
+- Make feedback specific and tied directly to the submission
+- Balance criticism with encouragement
+- Apply strictness rating ${strictnessRating}/5 consistently across all sections
+- Ensure all content is ready to be copied directly into an LMS or email
+`;
+
+                return prompt;
+            }
+            
+            async function callGeminiAPI(data) {
+                const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent';
+                
+                const prompt = buildModularPrompt(data);
+                
+                const requestBody = {
+                    contents: [
+                        {
+                            parts: [
+                                { text: prompt }
+                            ]
+                        }
+                    ],
+                    generationConfig: {
+                        temperature: 0.7,
+                        maxOutputTokens: 8000,
+                    }
+                };
+                
+                try {
+                    const response = await fetch(`${apiUrl}?key=${data.apiKey}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error?.message || 'API request failed');
+                    }
+                    
+                    const responseData = await response.json();
+                    
+                    if (!responseData.candidates || responseData.candidates.length === 0) {
+                        throw new Error('No response generated. Please try again.');
+                    }
+                    
+                    // Extract the text content from the response
+                    let textContent = '';
+                    
+                    responseData.candidates[0].content.parts.forEach(part => {
+                        if (part.text) {
+                            textContent += part.text;
+                        }
+                    });
+                    
+                    return textContent;
+                } catch (error) {
+                    console.error('API Error:', error);
+                    throw error;
+                }
+            }
+            
+            function copyFeedbackToClipboard() {
+                // Get the markdown content from output element
+                const markdownContent = outputElement.innerText;
+                
+                navigator.clipboard.writeText(markdownContent)
+                    .then(() => {
+                        copyModal.style.display = 'flex';
+                    })
+                    .catch((error) => {
+                        console.error('Failed to copy text:', error);
+                        alert('Failed to copy text to clipboard. Please try again or copy manually.');
+                    });
+            }
+            
+            // Close modals when clicking outside
+            window.addEventListener('click', (event) => {
+                if (event.target === copyModal) {
+                    copyModal.style.display = 'none';
+                }
+                if (event.target === aboutModal) {
+                    aboutModal.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
