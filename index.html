@@ -1,10 +1,9 @@
-
-                            
-
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GradeAssistAI - Student Submission Grading Assistant</title>
+    <title>GradeAssistAI - Improved Student Assessment Tool</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
     <style>
@@ -18,6 +17,7 @@
             --shadow-color: rgba(0, 0, 0, 0.1);
             --error-color: #d32f2f;
             --success-color: #388e3c;
+            --warning-color: #f57c00;
             --font-family: 'Georgia', 'Times New Roman', serif;
         }
 
@@ -94,6 +94,23 @@
             box-shadow: 0 2px 10px var(--shadow-color);
         }
 
+        .form-section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .form-section h3 {
+            color: var(--accent-color);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
         .form-group {
             margin-bottom: 15px;
         }
@@ -102,6 +119,10 @@
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+        }
+
+        .required {
+            color: var(--error-color);
         }
 
         input, textarea, select {
@@ -145,15 +166,71 @@
             font-size: 0.8rem;
         }
 
+        /* Assessment Settings */
+        .assessment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .assessment-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .strictness-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .strictness-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--primary-color);
+            margin-top: 5px;
+        }
+
+        /* Feedback Type Selection */
+        .feedback-type {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .feedback-option {
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .feedback-option:hover {
+            border-color: var(--accent-color);
+        }
+
+        .feedback-option.selected {
+            border-color: var(--accent-color);
+            background-color: rgba(74, 111, 165, 0.1);
+        }
+
+        .feedback-option input[type="radio"] {
+            display: none;
+        }
+
+        .feedback-option h4 {
+            margin-bottom: 5px;
+            color: var(--accent-color);
+        }
+
         /* Content Selection Styling */
         .content-selection {
             margin-bottom: 20px;
-        }
-
-        .content-selection h3 {
-            margin-bottom: 15px;
-            color: var(--accent-color);
-            font-size: 1.1rem;
         }
 
         .checkbox-group {
@@ -164,13 +241,22 @@
 
         .checkbox-item {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 10px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+
+        .checkbox-item:hover {
+            background-color: rgba(74, 111, 165, 0.05);
         }
 
         .checkbox-item input[type="checkbox"] {
             width: auto;
             margin: 0;
+            margin-top: 3px;
         }
 
         .checkbox-item label {
@@ -180,10 +266,10 @@
             flex: 1;
         }
 
-        .checkbox-item .word-limit {
-            font-size: 0.8rem;
+        .checkbox-item .description {
+            font-size: 0.85rem;
             color: var(--primary-color);
-            font-style: italic;
+            margin-top: 3px;
         }
 
         /* API Key Styling */
@@ -447,12 +533,26 @@
             border-radius: 4px;
             margin-top: 10px;
         }
+
+        /* Info box */
+        .info-box {
+            background-color: rgba(74, 111, 165, 0.1);
+            border: 1px solid var(--accent-color);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h4 {
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
     </style>
-
-
+</head>
+<body>
     <div class="container">
         <header>
-            <h1>GradingAI</h1>
+            <h1>GradeAssistAI</h1>
             <p>Toggle Dark Mode</p>
             <button id="darkModeToggle" class="toggle-btn">
                 <i class="fas fa-moon"></i>
@@ -461,137 +561,228 @@
 
         <main>
             <div class="form-container">
-                <div class="form-group">
-                    <label for="assignmentType">Assignment Type</label>
-                    <input type="text" id="assignmentType" placeholder="Essay, Project, Quiz, Lab Report, etc.">
-                </div>
-                
-                <div class="form-group">
-                    <label for="gradeLevel">Grade Level</label>
-                    <input type="text" id="gradeLevel" placeholder="K-12, Undergraduate, Graduate, etc.">
-                </div>
-                
-                <div class="form-group">
-                    <label for="discipline">Academic Discipline</label>
-                    <input type="text" id="discipline" placeholder="Mathematics, English, Biology, History, etc.">
-                </div>
-                
-                <div class="form-group">
-                    <label for="knowledgeLevel">Expected Knowledge Level</label>
-                    <select id="knowledgeLevel">
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
-                        <option value="expert">Expert</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="strictnessRating">Strictness Rating (1-5)</label>
-                    <input type="number" id="strictnessRating" min="1" max="5" value="3" placeholder="1 = Lenient, 5 = Strict">
+                <!-- Assignment Context Section -->
+                <div class="form-section">
+                    <h3>Assignment Context</h3>
+                    <div class="assessment-grid">
+                        <div class="form-group">
+                            <label for="assignmentType">Assignment Type <span class="required">*</span></label>
+                            <input type="text" id="assignmentType" placeholder="Essay, Lab Report, Project, etc.">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="gradeLevel">Grade Level <span class="required">*</span></label>
+                            <select id="gradeLevel">
+                                <option value="">Select Grade Level</option>
+                                <option value="elementary">Elementary (K-5)</option>
+                                <option value="middle">Middle School (6-8)</option>
+                                <option value="high">High School (9-12)</option>
+                                <option value="undergraduate">Undergraduate</option>
+                                <option value="graduate">Graduate</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="discipline">Subject <span class="required">*</span></label>
+                            <input type="text" id="discipline" placeholder="Math, English, Science, History, etc.">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="knowledgeLevel">Student Experience Level</label>
+                            <select id="knowledgeLevel">
+                                <option value="novice">Novice (First exposure)</option>
+                                <option value="developing">Developing (Some practice)</option>
+                                <option value="proficient">Proficient (Meets expectations)</option>
+                                <option value="advanced">Advanced (Exceeds expectations)</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="content-selection">
-                    <h3>Select Content Sections to Include</h3>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="suggestedGrade" checked="">
-                            <label for="suggestedGrade">Suggested Grade</label>
-                            <span class="word-limit">(&lt; 20 words)</span>
+                <!-- Assessment Settings Section -->
+                <div class="form-section">
+                    <h3>Assessment Settings</h3>
+                    
+                    <div class="form-group">
+                        <label>Feedback Purpose</label>
+                        <div class="feedback-type">
+                            <div class="feedback-option" data-type="formative">
+                                <input type="radio" name="feedbackType" value="formative" checked>
+                                <h4>Formative</h4>
+                                <p>Ongoing feedback for learning</p>
+                            </div>
+                            <div class="feedback-option selected" data-type="summative">
+                                <input type="radio" name="feedbackType" value="summative">
+                                <h4>Summative</h4>
+                                <p>Final evaluation with grade</p>
+                            </div>
                         </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="summaryAssessment" checked="">
-                            <label for="summaryAssessment">Summary of Assessment</label>
-                            <span class="word-limit">(&lt; 150 words)</span>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="strictnessRating">Grading Strictness (1-5)</label>
+                        <div class="strictness-container">
+                            <input type="range" id="strictnessRating" min="1" max="5" value="3">
+                            <span id="strictnessValue">3</span>
                         </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="rubricPerformance" checked="">
-                            <label for="rubricPerformance">Performance Against Defined Rubrics</label>
-                            <span class="word-limit">(&lt; 200 words)</span>
+                        <div class="strictness-labels">
+                            <span>Lenient</span>
+                            <span>Moderate</span>
+                            <span>Strict</span>
                         </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="areasStrength" checked="">
-                            <label for="areasStrength">Areas of Strength</label>
-                            <span class="word-limit">(&lt; 200 words)</span>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="areasImprovement" checked="">
-                            <label for="areasImprovement">Areas of Improvement</label>
-                            <span class="word-limit">(&lt; 200 words)</span>
+                        <small>Higher values mean more demanding standards and detailed critique</small>
+                    </div>
+                </div>
+
+                <!-- Content Selection Section -->
+                <div class="form-section">
+                    <div class="content-selection">
+                        <h3>Include in Assessment</h3>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="overallGrade" checked>
+                                <label for="overallGrade">
+                                    <div><strong>Overall Grade & Summary</strong></div>
+                                    <div class="description">Letter/number grade with brief overall assessment</div>
+                                </label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="criteriaBreakdown" checked>
+                                <label for="criteriaBreakdown">
+                                    <div><strong>Criteria-by-Criteria Breakdown</strong></div>
+                                    <div class="description">Detailed evaluation against each rubric criterion</div>
+                                </label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="strengthsAnalysis" checked>
+                                <label for="strengthsAnalysis">
+                                    <div><strong>Strengths Analysis</strong></div>
+                                    <div class="description">Specific examples of what the student did well</div>
+                                </label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="improvementPlan" checked>
+                                <label for="improvementPlan">
+                                    <div><strong>Improvement Action Plan</strong></div>
+                                    <div class="description">Specific, actionable steps for improvement</div>
+                                </label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="nextSteps">
+                                <label for="nextSteps">
+                                    <div><strong>Next Learning Steps</strong></div>
+                                    <div class="description">Recommendations for continued learning</div>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="questionText">Assignment Question(s)</label>
-                    <textarea id="questionText" placeholder="Enter the question(s) that students were asked to answer."></textarea>
+                <!-- Assignment Details Section -->
+                <div class="form-section">
+                    <h3>Assignment Details</h3>
+                    
+                    <div class="form-group">
+                        <label for="questionText">Assignment Instructions/Questions <span class="required">*</span></label>
+                        <textarea id="questionText" placeholder="Paste the complete assignment instructions, questions, or prompts that students were given."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="rubricElements">Grading Criteria/Rubric <span class="required">*</span></label>
+                        <textarea id="rubricElements" placeholder="List the specific criteria used for grading (e.g., Content Knowledge: 25 points, Organization: 20 points, Writing Quality: 15 points, etc.). Include point values or percentages if available."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="expectedAnswer">Key Points/Model Answer (Optional)</label>
+                        <textarea id="expectedAnswer" placeholder="Include key concepts, correct answers, or sample responses that should be present in strong submissions."></textarea>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="expectedAnswer">Expected Answer(s)</label>
-                    <textarea id="expectedAnswer" placeholder="Enter what you would consider to be a model answer or key points that should be included."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="rubricElements">Rubric Elements</label>
-                    <textarea id="rubricElements" placeholder="List the rubric elements or criteria used to evaluate this assignment (e.g., Content Accuracy, Organization, Grammar, Critical Thinking)."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="studentSubmission">Student Submission</label>
-                    <textarea id="studentSubmission" placeholder="Paste the student's submission text here."></textarea>
+                <!-- Student Submission Section -->
+                <div class="form-section">
+                    <h3>Student Work</h3>
+                    
+                    <div class="form-group">
+                        <label for="studentSubmission">Student Submission <span class="required">*</span></label>
+                        <textarea id="studentSubmission" placeholder="Paste the student's complete submission here." style="min-height: 150px;"></textarea>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="apiKey">Gemini API Key</label>
-                    <div class="api-key-container">
-                        <input type="password" id="apiKey" placeholder="Enter your Gemini API Key">
-                        <button id="toggleApiKey" class="toggle-visibility">
-                            <i class="fas fa-eye"></i>
-                        </button>
+                <!-- API Configuration Section -->
+                <div class="form-section">
+                    <h3>API Configuration</h3>
+                    
+                    <div class="info-box">
+                        <h4><i class="fas fa-info-circle"></i> Privacy Notice</h4>
+                        <p>Your API key is stored locally in your browser and only sent to Google's Gemini API. No data is stored on external servers.</p>
                     </div>
-                    <small>Your API key is stored locally and never sent to any server except Google's API.</small>
+                    
+                    <div class="form-group">
+                        <label for="apiKey">Gemini API Key <span class="required">*</span></label>
+                        <div class="api-key-container">
+                            <input type="password" id="apiKey" placeholder="Enter your Gemini API Key">
+                            <button id="toggleApiKey" class="toggle-visibility">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small>Get your free API key at <a href="https://ai.google.dev/" target="_blank">ai.google.dev</a></small>
+                    </div>
                 </div>
                 
-                <button id="generateBtn" class="primary-btn">Generate Feedback</button>
+                <button id="generateBtn" class="primary-btn">
+                    <i class="fas fa-magic"></i> Generate Assessment
+                </button>
             </div>
             
             <div class="output-container" id="outputContainer">
                 <div class="output-header">
-                    <h2>Generated Feedback</h2>
-                    <button id="copyBtn" class="secondary-btn" disabled="">
-                        <i class="fas fa-copy"></i> Copy to Clipboard
+                    <h2>Generated Assessment</h2>
+                    <button id="copyBtn" class="secondary-btn" disabled>
+                        <i class="fas fa-copy"></i> Copy Feedback
                     </button>
                 </div>
                 
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
-                    <p>Generating feedback...</p>
+                    <p>Analyzing submission and generating feedback...</p>
                 </div>
                 
-                <div id="output" class="output"></div>
+                <div id="output" class="output">
+                    <p style="color: var(--primary-color); font-style: italic; text-align: center; margin-top: 50px;">
+                        Fill out the form and click "Generate Assessment" to see AI-powered feedback here.
+                    </p>
+                </div>
             </div>
         </main>
         
         <footer>
-            <p>GradeAssistAI © 2025 | <a href="#" id="aboutLink">About</a></p>
+            <p>GradeAssistAI v2.0 © 2025 | <a href="#" id="aboutLink">About</a> | <a href="#" id="helpLink">Help</a></p>
         </footer>
     </div>
     
+    <!-- Copy Success Modal -->
     <div id="copyModal" class="modal">
         <div class="modal-content">
-            <h3>Feedback Copied!</h3>
-            <p>Paste this directly into your LMS or email to students!</p>
+            <h3><i class="fas fa-check-circle" style="color: var(--success-color);"></i> Feedback Copied!</h3>
+            <p>The assessment has been copied to your clipboard. You can now paste it directly into your LMS, email, or grading platform.</p>
             <button id="closeModal" class="primary-btn">Got it!</button>
         </div>
     </div>
     
+    <!-- About Modal -->
     <div id="aboutModal" class="modal">
         <div class="modal-content">
-            <h3>About GradeAssistAI</h3>
-            <p>GradeAssistAI is a lightweight tool that helps educators grade student submissions and provide comprehensive feedback quickly using AI.</p>
-            <p>This application runs entirely in your browser - no data is stored on any server.</p>
-            <p>To use GradeAssistAI, you'll need a <a href="https://ai.google.dev/" target="_blank">Gemini API key</a>.</p>
+            <h3>About GradeAssistAI v2.0</h3>
+            <p>An improved AI-powered tool that helps educators provide comprehensive, consistent feedback on student work.</p>
+            <p><strong>New Features:</strong></p>
+            <ul style="text-align: left; margin: 15px 0;">
+                <li>Enhanced prompt engineering for better feedback quality</li>
+                <li>Flexible assessment types (formative vs summative)</li>
+                <li>Improved grading consistency with strictness controls</li>
+                <li>Grade-level appropriate language and expectations</li>
+                <li>Modular feedback sections you can customize</li>
+            </ul>
+            <p>This application runs entirely in your browser - no data is stored on external servers.</p>
             <button id="closeAboutModal" class="primary-btn">Close</button>
         </div>
     </div>
@@ -604,7 +795,6 @@
             const copyBtn = document.getElementById('copyBtn');
             const toggleApiKeyBtn = document.getElementById('toggleApiKey');
             const apiKeyInput = document.getElementById('apiKey');
-            const outputContainer = document.getElementById('outputContainer');
             const outputElement = document.getElementById('output');
             const loadingElement = document.getElementById('loading');
             const copyModal = document.getElementById('copyModal');
@@ -613,23 +803,48 @@
             const aboutModal = document.getElementById('aboutModal');
             const closeAboutModalBtn = document.getElementById('closeAboutModal');
             const strictnessRatingInput = document.getElementById('strictnessRating');
+            const strictnessValue = document.getElementById('strictnessValue');
             
-            // Content section checkboxes
-            const suggestedGradeCheck = document.getElementById('suggestedGrade');
-            const summaryAssessmentCheck = document.getElementById('summaryAssessment');
-            const rubricPerformanceCheck = document.getElementById('rubricPerformance');
-            const areasStrengthCheck = document.getElementById('areasStrength');
-            const areasImprovementCheck = document.getElementById('areasImprovement');
+            // Feedback type options
+            const feedbackOptions = document.querySelectorAll('.feedback-option');
+            const feedbackTypeInputs = document.querySelectorAll('input[name="feedbackType"]');
             
-            // Check for dark mode preference
-            if (localStorage.getItem('darkMode') === 'enabled') {
-                document.body.classList.add('dark-mode');
-                darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            // Initialize
+            initializeApp();
+            
+            function initializeApp() {
+                // Check for dark mode preference
+                if (localStorage.getItem('darkMode') === 'enabled') {
+                    document.body.classList.add('dark-mode');
+                    darkModeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                }
+                
+                // Load saved API key
+                if (localStorage.getItem('geminiApiKey')) {
+                    apiKeyInput.value = localStorage.getItem('geminiApiKey');
+                }
+                
+                // Set up feedback type selection
+                setupFeedbackTypeSelection();
+                
+                // Update strictness display
+                updateStrictnessDisplay();
             }
             
-            // Load saved API key if available
-            if (localStorage.getItem('geminiApiKey')) {
-                apiKeyInput.value = localStorage.getItem('geminiApiKey');
+            function setupFeedbackTypeSelection() {
+                feedbackOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        feedbackOptions.forEach(opt => opt.classList.remove('selected'));
+                        option.classList.add('selected');
+                        
+                        const input = option.querySelector('input[type="radio"]');
+                        input.checked = true;
+                    });
+                });
+            }
+            
+            function updateStrictnessDisplay() {
+                strictnessValue.textContent = strictnessRatingInput.value;
             }
             
             // Event Listeners
@@ -644,7 +859,8 @@
             });
             closeAboutModalBtn.addEventListener('click', () => aboutModal.style.display = 'none');
             
-            // API Key input change - save to localStorage
+            strictnessRatingInput.addEventListener('input', updateStrictnessDisplay);
+            
             apiKeyInput.addEventListener('change', () => {
                 localStorage.setItem('geminiApiKey', apiKeyInput.value);
             });
@@ -672,201 +888,208 @@
                 }
             }
             
-            function getSelectedContentSections() {
+            function getSelectedSections() {
                 const sections = [];
                 
-                if (suggestedGradeCheck.checked) {
-                    sections.push({
-                        id: 'suggestedGrade',
-                        name: 'Suggested Grade',
-                        wordLimit: 20
-                    });
+                if (document.getElementById('overallGrade').checked) {
+                    sections.push('overallGrade');
                 }
-                
-                if (summaryAssessmentCheck.checked) {
-                    sections.push({
-                        id: 'summaryAssessment',
-                        name: 'Summary of Assessment',
-                        wordLimit: 150
-                    });
+                if (document.getElementById('criteriaBreakdown').checked) {
+                    sections.push('criteriaBreakdown');
                 }
-                
-                if (rubricPerformanceCheck.checked) {
-                    sections.push({
-                        id: 'rubricPerformance',
-                        name: 'Performance Against Defined Rubrics',
-                        wordLimit: 200
-                    });
+                if (document.getElementById('strengthsAnalysis').checked) {
+                    sections.push('strengthsAnalysis');
                 }
-                
-                if (areasStrengthCheck.checked) {
-                    sections.push({
-                        id: 'areasStrength',
-                        name: 'Areas of Strength',
-                        wordLimit: 200
-                    });
+                if (document.getElementById('improvementPlan').checked) {
+                    sections.push('improvementPlan');
                 }
-                
-                if (areasImprovementCheck.checked) {
-                    sections.push({
-                        id: 'areasImprovement',
-                        name: 'Areas of Improvement',
-                        wordLimit: 200
-                    });
+                if (document.getElementById('nextSteps').checked) {
+                    sections.push('nextSteps');
                 }
                 
                 return sections;
             }
             
+            function getFeedbackType() {
+                return document.querySelector('input[name="feedbackType"]:checked').value;
+            }
+            
             async function generateFeedback() {
-                // Get input values
-                const assignmentType = document.getElementById('assignmentType').value.trim();
-                const gradeLevel = document.getElementById('gradeLevel').value.trim();
-                const discipline = document.getElementById('discipline').value.trim();
-                const knowledgeLevel = document.getElementById('knowledgeLevel').value;
-                const strictnessRating = strictnessRatingInput.value.trim();
-                const questionText = document.getElementById('questionText').value.trim();
-                const expectedAnswer = document.getElementById('expectedAnswer').value.trim();
-                const rubricElements = document.getElementById('rubricElements').value.trim();
-                const studentSubmission = document.getElementById('studentSubmission').value.trim();
-                const apiKey = apiKeyInput.value.trim();
-                const selectedSections = getSelectedContentSections();
+                // Collect form data
+                const formData = {
+                    assignmentType: document.getElementById('assignmentType').value.trim(),
+                    gradeLevel: document.getElementById('gradeLevel').value,
+                    discipline: document.getElementById('discipline').value.trim(),
+                    knowledgeLevel: document.getElementById('knowledgeLevel').value,
+                    strictnessRating: strictnessRatingInput.value,
+                    feedbackType: getFeedbackType(),
+                    questionText: document.getElementById('questionText').value.trim(),
+                    expectedAnswer: document.getElementById('expectedAnswer').value.trim(),
+                    rubricElements: document.getElementById('rubricElements').value.trim(),
+                    studentSubmission: document.getElementById('studentSubmission').value.trim(),
+                    apiKey: apiKeyInput.value.trim(),
+                    selectedSections: getSelectedSections()
+                };
                 
-                // Validate inputs
-                if (!assignmentType || !gradeLevel || !discipline || !questionText || !studentSubmission) {
-                    alert('Please fill in the required fields: Assignment Type, Grade Level, Discipline, Question(s), and Student Submission.');
+                // Validate required fields
+                const validationErrors = validateFormData(formData);
+                if (validationErrors.length > 0) {
+                    alert('Please complete the following required fields:\n\n' + validationErrors.join('\n'));
                     return;
                 }
                 
-                if (!strictnessRating || strictnessRating < 1 || strictnessRating > 5) {
-                    alert('Please enter a valid strictness rating between 1 and 5.');
-                    return;
-                }
-                
-                if (!apiKey) {
-                    alert('Please enter your Gemini API Key.');
-                    return;
-                }
-                
-                if (selectedSections.length === 0) {
-                    alert('Please select at least one content section to include in the assessment.');
-                    return;
-                }
-                
-                // Show loading
-                loadingElement.style.display = 'block';
-                outputElement.innerHTML = '';
-                copyBtn.disabled = true;
+                // Show loading state
+                showLoading(true);
                 
                 try {
-                    const response = await callGeminiAPI({
-                        assignmentType,
-                        gradeLevel,
-                        discipline,
-                        knowledgeLevel,
-                        strictnessRating,
-                        questionText,
-                        expectedAnswer,
-                        rubricElements,
-                        studentSubmission,
-                        apiKey,
-                        selectedSections
-                    });
-                    
-                    // Display result with markdown rendering
+                    const response = await callGeminiAPI(formData);
                     outputElement.innerHTML = marked.parse(response);
                     copyBtn.disabled = false;
                 } catch (error) {
-                    outputElement.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                    outputElement.innerHTML = `<div class="error"><i class="fas fa-exclamation-triangle"></i> <strong>Error:</strong> ${error.message}</div>`;
                 } finally {
-                    loadingElement.style.display = 'none';
+                    showLoading(false);
                 }
             }
             
-            // Map knowledge level values to descriptive text
-            function getKnowledgeLevelDescription(level) {
-                const levelDescriptions = {
-                    'beginner': 'Students are just being introduced to the subject matter and should demonstrate basic understanding of fundamental concepts.',
-                    'intermediate': 'Students have some background in the subject and should demonstrate application of concepts and deeper understanding.',
-                    'advanced': 'Students have significant experience with the subject and should demonstrate synthesis of ideas and critical analysis.',
-                    'expert': 'Students have extensive knowledge of the field and should demonstrate mastery, original insights, and field-specific expertise.'
-                };
+            function validateFormData(data) {
+                const errors = [];
                 
-                return levelDescriptions[level] || level;
+                if (!data.assignmentType) errors.push('• Assignment Type');
+                if (!data.gradeLevel) errors.push('• Grade Level');
+                if (!data.discipline) errors.push('• Subject');
+                if (!data.questionText) errors.push('• Assignment Instructions/Questions');
+                if (!data.rubricElements) errors.push('• Grading Criteria/Rubric');
+                if (!data.studentSubmission) errors.push('• Student Submission');
+                if (!data.apiKey) errors.push('• Gemini API Key');
+                if (data.selectedSections.length === 0) errors.push('• At least one assessment section must be selected');
+                
+                return errors;
             }
             
-            function buildModularPrompt(data) {
-                const { assignmentType, gradeLevel, discipline, knowledgeLevel, strictnessRating, questionText, expectedAnswer, rubricElements, studentSubmission, selectedSections } = data;
+            function showLoading(show) {
+                loadingElement.style.display = show ? 'block' : 'none';
+                if (show) {
+                    outputElement.innerHTML = '';
+                    copyBtn.disabled = true;
+                }
+            }
+            
+            function buildImprovedPrompt(data) {
+                const gradeDescriptions = {
+                    elementary: 'elementary school students (grades K-5) - use simple, encouraging language',
+                    middle: 'middle school students (grades 6-8) - use age-appropriate language with clear guidance',
+                    high: 'high school students (grades 9-12) - use mature language with detailed analysis', 
+                    undergraduate: 'undergraduate college students - use academic language with sophisticated analysis',
+                    graduate: 'graduate students - use professional, research-level language and expectations'
+                };
                 
-                const knowledgeLevelDescription = getKnowledgeLevelDescription(knowledgeLevel);
+                const knowledgeDescriptions = {
+                    novice: 'This is the student\'s first significant exposure to this material',
+                    developing: 'The student has some practice but is still building foundational skills',
+                    proficient: 'The student should meet grade-level expectations for this topic',
+                    advanced: 'The student is expected to exceed standard expectations and show mastery'
+                };
                 
-                let prompt = `Generate a student assessment report based on the following specifications. ONLY include the requested sections listed below:
+                const strictnessDescriptions = {
+                    1: 'Very lenient - focus on encouragement, give benefit of doubt on borderline cases',
+                    2: 'Lenient - emphasize positives while noting major areas for improvement',
+                    3: 'Balanced - fair and consistent standards with constructive feedback',
+                    4: 'Strict - high standards with detailed critique of areas needing improvement',
+                    5: 'Very strict - demanding standards with thorough analysis of all shortcomings'
+                };
+                
+                let prompt = `You are an expert educator providing ${data.feedbackType} assessment feedback for ${gradeDescriptions[data.gradeLevel] || data.gradeLevel}. 
 
-ASSIGNMENT DETAILS:
-- Assignment Type: ${assignmentType}
-- Grade Level: ${gradeLevel}
-- Academic Discipline: ${discipline}
-- Knowledge Level: ${knowledgeLevelDescription}
-- Strictness Rating: ${strictnessRating}/5 (where 1 is most lenient and 5 is most strict)
+**ASSESSMENT CONTEXT:**
+- Assignment: ${data.assignmentType} in ${data.discipline}
+- Student Level: ${knowledgeDescriptions[data.knowledgeLevel]}
+- Grading Approach: ${strictnessDescriptions[data.strictnessRating]}
+- Purpose: ${data.feedbackType === 'formative' ? 'Ongoing learning support and improvement guidance' : 'Final evaluation with official grade and comprehensive feedback'}
 
-ASSIGNMENT QUESTION:
-${questionText}
+**ASSIGNMENT INSTRUCTIONS:**
+${data.questionText}
 
-${expectedAnswer ? `EXPECTED ANSWER OR KEY POINTS:
-${expectedAnswer}` : ''}
+**GRADING CRITERIA:**
+${data.rubricElements}
 
-${rubricElements ? `RUBRIC ELEMENTS:
-${rubricElements}` : 'STANDARD RUBRIC ELEMENTS:\n- Content Accuracy\n- Critical Thinking\n- Organization\n- Clarity of Expression\n- Grammar and Mechanics'}
+${data.expectedAnswer ? `**KEY POINTS/MODEL ANSWER:**
+${data.expectedAnswer}
 
-STUDENT SUBMISSION:
-${studentSubmission}
+` : ''}**STUDENT SUBMISSION:**
+${data.studentSubmission}
 
-REQUESTED SECTIONS TO INCLUDE (generate ONLY these sections):
+**INSTRUCTIONS:**
+Generate ONLY the following sections in this exact order. Use markdown formatting with ## headers. Keep language appropriate for ${gradeDescriptions[data.gradeLevel]}. Apply strictness level ${data.strictnessRating}/5 consistently.
+
 `;
 
-                selectedSections.forEach(section => {
-                    switch (section.id) {
-                        case 'suggestedGrade':
+                // Add sections based on selection
+                data.selectedSections.forEach(section => {
+                    switch (section) {
+                        case 'overallGrade':
                             prompt += `
-## ${section.name}
-Provide a suggested grade or score appropriate for the grade level and discipline. Keep this under ${section.wordLimit} words. Be concise and direct.
-`;
-                            break;
-                        case 'summaryAssessment':
-                            prompt += `
-## ${section.name}
-Write a comprehensive summary of the overall assessment in under ${section.wordLimit} words. Include overall quality, effectiveness, and key observations about the student's work.
-`;
-                            break;
-                        case 'rubricPerformance':
-                            prompt += `
-## ${section.name}
-Evaluate the student's performance against each rubric element in under ${section.wordLimit} words total. Provide specific examples and scores where appropriate. Apply the strictness rating (${strictnessRating}/5) to determine how closely the submission must match expectations.
-`;
-                            break;
-                        case 'areasStrength':
-                            prompt += `
-## ${section.name}
-Identify and describe 2-3 specific strengths demonstrated in the submission in under ${section.wordLimit} words. Use specific examples from the student work and connect these strengths to academic skills.
+## Overall Grade and Summary
+- Provide specific grade (letter, percentage, or points based on rubric)
+- Write 2-3 sentences explaining the overall quality
+- Ensure grade aligns with detailed feedback below
+- For ${data.feedbackType} feedback: ${data.feedbackType === 'formative' ? 'focus on current standing and growth' : 'provide definitive evaluation'}
+
 `;
                             break;
-                        case 'areasImprovement':
+                        case 'criteriaBreakdown':
                             prompt += `
-## ${section.name}
-Provide 3-5 specific, actionable recommendations for improvement in under ${section.wordLimit} words. Focus on the most impactful changes and frame suggestions constructively. Include examples where helpful.
+## Performance by Criteria
+- Evaluate each criterion from the rubric separately
+- Give specific scores/ratings where applicable
+- Use concrete examples from student work
+- Apply strictness level ${data.strictnessRating} consistently
+- Explain how each criterion was met or not met
+
+`;
+                            break;
+                        case 'strengthsAnalysis':
+                            prompt += `
+## What You Did Well
+- Identify 2-3 specific strengths with examples
+- Connect strengths to academic skills and learning objectives
+- Use encouraging language appropriate for ${data.gradeLevel}
+- Quote or reference specific parts of the submission
+
+`;
+                            break;
+                        case 'improvementPlan':
+                            prompt += `
+## Action Plan for Improvement
+- Provide 3-4 specific, actionable steps
+- Prioritize most impactful improvements first
+- Include concrete strategies and techniques
+- Make suggestions achievable for ${data.knowledgeLevel} level
+- Connect to assignment criteria and learning objectives
+
+`;
+                            break;
+                        case 'nextSteps':
+                            prompt += `
+## Next Learning Steps
+- Suggest 2-3 ways to build on this assignment
+- Recommend resources, practice activities, or study approaches
+- Connect to broader learning goals in ${data.discipline}
+- Encourage continued growth and exploration
+
 `;
                             break;
                     }
                 });
 
                 prompt += `
-FORMATTING REQUIREMENTS:
-- Use markdown formatting for headers (##) and emphasis (**bold**)
-- Write in a professional, supportive tone appropriate for ${gradeLevel} level
-- Make feedback specific and tied directly to the submission
-- Balance criticism with encouragement
-- Apply strictness rating ${strictnessRating}/5 consistently across all sections
-- Ensure all content is ready to be copied directly into an LMS or email
+**QUALITY STANDARDS:**
+- Be specific and evidence-based - reference actual student work
+- Make feedback actionable and constructive
+- Ensure consistency between grade and detailed feedback
+- Use professional but encouraging tone
+- Focus on learning growth and improvement
+- Avoid generic comments - tailor everything to this specific submission
 `;
 
                 return prompt;
@@ -875,60 +1098,41 @@ FORMATTING REQUIREMENTS:
             async function callGeminiAPI(data) {
                 const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
                 
-                const prompt = buildModularPrompt(data);
+                const prompt = buildImprovedPrompt(data);
                 
                 const requestBody = {
-                    contents: [
-                        {
-                            parts: [
-                                { text: prompt }
-                            ]
-                        }
-                    ],
+                    contents: [{
+                        parts: [{ text: prompt }]
+                    }],
                     generationConfig: {
-                        temperature: 0.7,
+                        temperature: 0.3,
                         maxOutputTokens: 8000,
+                        topP: 0.8,
+                        topK: 40
                     }
                 };
                 
-                try {
-                    const response = await fetch(`${apiUrl}?key=${data.apiKey}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(requestBody)
-                    });
-                    
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error?.message || 'API request failed');
-                    }
-                    
-                    const responseData = await response.json();
-                    
-                    if (!responseData.candidates || responseData.candidates.length === 0) {
-                        throw new Error('No response generated. Please try again.');
-                    }
-                    
-                    // Extract the text content from the response
-                    let textContent = '';
-                    
-                    responseData.candidates[0].content.parts.forEach(part => {
-                        if (part.text) {
-                            textContent += part.text;
-                        }
-                    });
-                    
-                    return textContent;
-                } catch (error) {
-                    console.error('API Error:', error);
-                    throw error;
+                const response = await fetch(`${apiUrl}?key=${data.apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || `API request failed (${response.status})`);
                 }
+                
+                const responseData = await response.json();
+                
+                if (!responseData.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    throw new Error('No response generated. Please try again.');
+                }
+                
+                return responseData.candidates[0].content.parts[0].text;
             }
             
             function copyFeedbackToClipboard() {
-                // Get the markdown content from output element
                 const markdownContent = outputElement.innerText;
                 
                 navigator.clipboard.writeText(markdownContent)
@@ -936,8 +1140,8 @@ FORMATTING REQUIREMENTS:
                         copyModal.style.display = 'flex';
                     })
                     .catch((error) => {
-                        console.error('Failed to copy text:', error);
-                        alert('Failed to copy text to clipboard. Please try again or copy manually.');
+                        console.error('Failed to copy:', error);
+                        alert('Failed to copy to clipboard. Please copy the text manually.');
                     });
             }
             
@@ -952,6 +1156,5 @@ FORMATTING REQUIREMENTS:
             });
         });
     </script>
-
-
-                        
+</body>
+</html>
