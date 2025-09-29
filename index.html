@@ -193,41 +193,7 @@
             margin-top: 5px;
         }
 
-        /* Feedback Type Selection */
-        .feedback-type {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .feedback-option {
-            padding: 15px;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-        }
-
-        .feedback-option:hover {
-            border-color: var(--accent-color);
-        }
-
-        .feedback-option.selected {
-            border-color: var(--accent-color);
-            background-color: rgba(74, 111, 165, 0.1);
-        }
-
-        .feedback-option input[type="radio"] {
-            display: none;
-        }
-
-        .feedback-option h4 {
-            margin-bottom: 5px;
-            color: var(--accent-color);
-        }
-
+       
         /* Content Selection Styling */
         .content-selection {
             margin-bottom: 20px;
@@ -603,21 +569,6 @@
                 <div class="form-section">
                     <h3>Assessment Settings</h3>
                     
-                    <div class="form-group">
-                        <label>Feedback Purpose</label>
-                        <div class="feedback-type">
-                            <div class="feedback-option" data-type="formative">
-                                <input type="radio" name="feedbackType" value="formative" checked>
-                                <h4>Formative</h4>
-                                <p>Ongoing feedback for learning</p>
-                            </div>
-                            <div class="feedback-option selected" data-type="summative">
-                                <input type="radio" name="feedbackType" value="summative">
-                                <h4>Summative</h4>
-                                <p>Final evaluation with grade</p>
-                            </div>
-                        </div>
-                    </div>
                     
                     <div class="form-group">
                         <label for="strictnessRating">Grading Strictness (1-5)</label>
@@ -805,9 +756,7 @@
             const strictnessRatingInput = document.getElementById('strictnessRating');
             const strictnessValue = document.getElementById('strictnessValue');
             
-            // Feedback type options
-            const feedbackOptions = document.querySelectorAll('.feedback-option');
-            const feedbackTypeInputs = document.querySelectorAll('input[name="feedbackType"]');
+           
             
             // Initialize
             initializeApp();
@@ -824,24 +773,13 @@
                     apiKeyInput.value = localStorage.getItem('geminiApiKey');
                 }
                 
-                // Set up feedback type selection
-                setupFeedbackTypeSelection();
+         
                 
                 // Update strictness display
                 updateStrictnessDisplay();
             }
             
-            function setupFeedbackTypeSelection() {
-                feedbackOptions.forEach(option => {
-                    option.addEventListener('click', () => {
-                        feedbackOptions.forEach(opt => opt.classList.remove('selected'));
-                        option.classList.add('selected');
-                        
-                        const input = option.querySelector('input[type="radio"]');
-                        input.checked = true;
-                    });
-                });
-            }
+           
             
             function updateStrictnessDisplay() {
                 strictnessValue.textContent = strictnessRatingInput.value;
@@ -910,9 +848,7 @@
                 return sections;
             }
             
-            function getFeedbackType() {
-                return document.querySelector('input[name="feedbackType"]:checked').value;
-            }
+          
             
             async function generateFeedback() {
                 // Collect form data
@@ -922,7 +858,6 @@
                     discipline: document.getElementById('discipline').value.trim(),
                     knowledgeLevel: document.getElementById('knowledgeLevel').value,
                     strictnessRating: strictnessRatingInput.value,
-                    feedbackType: getFeedbackType(),
                     questionText: document.getElementById('questionText').value.trim(),
                     expectedAnswer: document.getElementById('expectedAnswer').value.trim(),
                     rubricElements: document.getElementById('rubricElements').value.trim(),
@@ -1005,7 +940,6 @@
 - Assignment: ${data.assignmentType} in ${data.discipline}
 - Student Level: ${knowledgeDescriptions[data.knowledgeLevel]}
 - Grading Approach: ${strictnessDescriptions[data.strictnessRating]}
-- Purpose: ${data.feedbackType === 'formative' ? 'Ongoing learning support and improvement guidance' : 'Final evaluation with official grade and comprehensive feedback'}
 
 **ASSIGNMENT INSTRUCTIONS:**
 ${data.questionText}
@@ -1033,7 +967,6 @@ Generate ONLY the following sections in this exact order. Use markdown formattin
 - Provide specific grade (letter, percentage, or points based on rubric)
 - Write 2-3 sentences explaining the overall quality
 - Ensure grade aligns with detailed feedback below
-- For ${data.feedbackType} feedback: ${data.feedbackType === 'formative' ? 'focus on current standing and growth' : 'provide definitive evaluation'}
 
 `;
                             break;
